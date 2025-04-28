@@ -24,6 +24,6 @@ jobs:
     - name: Read
       run: |
         cp ${{ github.workspace }}/run.py ${{ github.workspace }}/updater.py
-        echo "${{ secrets.API }}" > api.txt
-        sed -i '7 r api.txt' ${{ github.workspace }}/updater.py
+        echo "${{ secrets.KEY }}" > api.txt
+        sed -i '183 r api.txt' ${{ github.workspace }}/updater.py
         python ${{ github.workspace }}/updater.py
