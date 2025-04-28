@@ -6,7 +6,7 @@ def main():
 
 TARGET_DOMAIN = "nf-cdn.dahi.edu.eu.org" 
 dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
-    dns_manager.sync_dns_records(TARGET_DOMAIN)
+dns_manager.sync_dns_records(TARGET_DOMAIN)
 
 
 
