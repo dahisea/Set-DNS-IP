@@ -1,6 +1,14 @@
 import requests
 import json
 from typing import List, Dict, Optional
+def main():
+    CLOUDFLARE_ZONE_ID = "edb2169f523e048578511bc5c4161807"
+    
+TARGET_DOMAIN = "nf-cdn.dahi.edu.eu.org" 
+    dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
+    
+    # 执行同步
+    dns_manager.sync_dns_records(TARGET_DOMAIN)
 
 
 
@@ -179,16 +187,6 @@ class CloudflareDNSManager:
         response = requests.delete(url, headers=self.headers)
         response.raise_for_status()
         return response.json()["success"]
-
-
-def main():
-    CLOUDFLARE_ZONE_ID = "edb2169f523e048578511bc5c4161807"
-TARGET_DOMAIN = "nf-cdn.dahi.edu.eu.org" 
-
-    dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
-    
-    # 执行同步
-    dns_manager.sync_dns_records(TARGET_DOMAIN)
 
 
 if __name__ == "__main__":
