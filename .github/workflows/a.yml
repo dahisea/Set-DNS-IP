@@ -1,0 +1,29 @@
+name: Update
+
+on:
+  watch:
+    types: [started]
+   
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps: 
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: |
+        pip install requests
+
+    - name: Read
+      run: |
+        cp ${{ github.workspace }}/run.py ${{ github.workspace }}/updater.py
+        echo "${{ secrets.API }}" > api.txt
+        sed -i '7 r api.txt' ${{ github.workspace }}/updater.py
+        python ${{ github.workspace }}/updater.py
