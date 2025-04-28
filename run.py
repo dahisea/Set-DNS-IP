@@ -1,191 +1,153 @@
+import os
+import sys
 import requests
-import json
-from typing import List, Dict, Optional
-def main():
-    CLOUDFLARE_ZONE_ID = "edb2169f523e048578511bc5c4161807"
+from typing import List, Dict
 
-TARGET_DOMAIN = "nf-cdn.dahi.edu.eu.org" 
-dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
-dns_manager.sync_dns_records(TARGET_DOMAIN)
-
-
-
-
-class CloudflareDNSManager:
-    def __init__(self, api_token: str, zone_id: str):
-        """
-        初始化 Cloudflare DNS 管理器
+class CloudflareDNSSync:
+    def __init__(self):
+        self.api_token = self._get_env_var("CLOUDFLARE_API_TOKEN")
+        self.zone_id = self._get_env_var("CLOUDFLARE_ZONE_ID", required=False)
+        self.target_domain = self._get_env_var("TARGET_DOMAIN")
+        self.source_hostname = self._get_env_var("SOURCE_HOSTNAME", default="a.netlify.app")
         
-        :param api_token: Cloudflare API 令牌
-        :param zone_id: Cloudflare 区域 ID
-        """
-        self.api_token = api_token
-        self.zone_id = zone_id
         self.base_url = "https://api.cloudflare.com/client/v4"
         self.headers = {
-            "Authorization": f"Bearer {api_token}",
+            "Authorization": f"Bearer {self.api_token}",
             "Content-Type": "application/json"
         }
 
-    def get_dns_records(self, record_type: str = None, name: str = None) -> List[Dict]:
-        """
-        获取 DNS 记录
-        
-        :param record_type: 记录类型 (A, AAAA, CNAME 等)
-        :param name: 记录名称
-        :return: DNS 记录列表
-        """
-        url = f"{self.base_url}/zones/{self.zone_id}/dns_records"
-        params = {}
-        if record_type:
-            params["type"] = record_type
-        if name:
-            params["name"] = name
-            
-        response = requests.get(url, headers=self.headers, params=params)
-        response.raise_for_status()
-        return response.json()["result"]
+    def _get_env_var(self, name: str, required: bool = True, default: str = None) -> str:
+        """获取环境变量"""
+        value = os.getenv(name, default)
+        if required and not value:
+            raise ValueError(f"环境变量 {name} 未设置")
+        return value
 
-    def update_dns_record(self, record_id: str, record_type: str, name: str, content: str, ttl: int = 1, proxied: bool = False) -> Dict:
-        """
-        更新 DNS 记录
+    def run(self):
+        """执行同步"""
+        print(f"开始同步 {self.target_domain} 到 {self.source_hostname} 的 DNS 记录")
         
-        :param record_id: 记录 ID
-        :param record_type: 记录类型
-        :param name: 记录名称
-        :param content: 记录内容 (IP 地址)
-        :param ttl: TTL 值 (1 表示自动)
-        :param proxied: 是否通过 Cloudflare 代理
-        :return: 更新后的记录
-        """
-        url = f"{self.base_url}/zones/{self.zone_id}/dns_records/{record_id}"
-        data = {
-            "type": record_type,
-            "name": name,
-            "content": content,
-            "ttl": ttl,
-            "proxied": proxied
-        }
-        
-        response = requests.put(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        return response.json()["result"]
+        # 如果没有提供 Zone ID，自动获取
+        if not self.zone_id:
+            self.zone_id = self._get_zone_id()
+            print(f"自动获取到 Zone ID: {self.zone_id}")
 
-    def create_dns_record(self, record_type: str, name: str, content: str, ttl: int = 1, proxied: bool = False) -> Dict:
-        """
-        创建 DNS 记录
-        
-        :param record_type: 记录类型
-        :param name: 记录名称
-        :param content: 记录内容 (IP 地址)
-        :param ttl: TTL 值 (1 表示自动)
-        :param proxied: 是否通过 Cloudflare 代理
-        :return: 新创建的记录
-        """
-        url = f"{self.base_url}/zones/{self.zone_id}/dns_records"
-        data = {
-            "type": record_type,
-            "name": name,
-            "content": content,
-            "ttl": ttl,
-            "proxied": proxied
-        }
-        
-        response = requests.post(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        return response.json()["result"]
+        # 获取源记录
+        source_records = self._get_source_records()
+        print(f"从 {self.source_hostname} 获取的记录: A={source_records['A']}, AAAA={source_records['AAAA']}")
 
-    def get_netlify_dns_records(self, hostname: str) -> Dict[str, List[str]]:
-        """
-        获取 Netlify 的 DNS 记录
-        
-        :param hostname: 主机名 (如 a.netlify.app)
-        :return: 包含 A 和 AAAA 记录的字典
-        """
-        try:
-            # 获取 A 记录
-            a_records = []
-            a_response = requests.get(f"https://dns.google/resolve?name={hostname}&type=A")
-            if a_response.status_code == 200:
-                a_data = a_response.json()
-                if "Answer" in a_data:
-                    a_records = [answer["data"] for answer in a_data["Answer"] if answer["type"] == 1]
-            
-            # 获取 AAAA 记录
-            aaaa_records = []
-            aaaa_response = requests.get(f"https://dns.google/resolve?name={hostname}&type=AAAA")
-            if aaaa_response.status_code == 200:
-                aaaa_data = aaaa_response.json()
-                if "Answer" in aaaa_data:
-                    aaaa_records = [answer["data"] for answer in aaaa_data["Answer"] if answer["type"] == 28]
-            
-            return {
-                "A": a_records,
-                "AAAA": aaaa_records
-            }
-        except Exception as e:
-            print(f"获取 Netlify DNS 记录失败: {e}")
-            return {"A": [], "AAAA": []}
+        # 同步记录
+        for record_type in ["A", "AAAA"]:
+            if source_records[record_type]:
+                self._sync_records(record_type, source_records[record_type])
 
-    def sync_dns_records(self, target_domain: str, source_hostname: str = "a.netlify.app"):
-        """
-        同步 DNS 记录
-        
-        :param target_domain: 目标域名 (如 example.com 或 sub.example.com)
-        :param source_hostname: 源主机名 (默认为 a.netlify.app)
-        """
-        # 获取 Netlify 的当前记录
-        netlify_records = self.get_netlify_dns_records(source_hostname)
-        print(f"从 {source_hostname} 获取的记录: A={netlify_records['A']}, AAAA={netlify_records['AAAA']}")
-        
-        # 处理 A 记录
-        self._sync_record_type(target_domain, "A", netlify_records["A"])
-        
-        # 处理 AAAA 记录
-        self._sync_record_type(target_domain, "AAAA", netlify_records["AAAA"])
-        
         print("DNS 记录同步完成")
 
-    def _sync_record_type(self, target_domain: str, record_type: str, source_ips: List[str]):
-        """
-        同步特定类型的记录
+    def _get_zone_id(self) -> str:
+        """获取 Zone ID"""
+        domain_parts = self.target_domain.split(".")
+        base_domain = ".".join(domain_parts[-2:])  # 获取主域名
         
-        :param target_domain: 目标域名
-        :param record_type: 记录类型 (A 或 AAAA)
-        :param source_ips: 源 IP 地址列表
-        """
-        if not source_ips:
-            print(f"没有可用的 {record_type} 记录可同步")
-            return
-            
-        # 获取目标域名的现有记录
-        existing_records = self.get_dns_records(record_type=record_type, name=target_domain)
-        
-        # 删除目标域名中不在源 IP 列表中的记录
-        for record in existing_records:
-            if record["content"] not in source_ips:
-                print(f"删除 {record_type} 记录: {record['name']} -> {record['content']}")
-                self._delete_dns_record(record["id"])
-        
-        # 添加源 IP 列表中不存在于目标域名的记录
-        existing_ips = {record["content"] for record in existing_records}
-        for ip in source_ips:
-            if ip not in existing_ips:
-                print(f"创建 {record_type} 记录: {target_domain} -> {ip}")
-                self.create_dns_record(record_type, target_domain, ip)
-
-    def _delete_dns_record(self, record_id: str) -> bool:
-        """
-        删除 DNS 记录
-        
-        :param record_id: 记录 ID
-        :return: 是否成功
-        """
-        url = f"{self.base_url}/zones/{self.zone_id}/dns_records/{record_id}"
-        response = requests.delete(url, headers=self.headers)
+        response = requests.get(
+            f"{self.base_url}/zones",
+            headers=self.headers,
+            params={"name": base_domain}
+        )
         response.raise_for_status()
-        return response.json()["success"]
+        zones = response.json()["result"]
+        
+        if not zones:
+            raise ValueError(f"找不到域名 {base_domain} 对应的 Zone")
+        
+        return zones[0]["id"]
+
+    def _get_source_records(self) -> Dict[str, List[str]]:
+        """获取源 DNS 记录"""
+        try:
+            return {
+                "A": self._query_dns("A"),
+                "AAAA": self._query_dns("AAAA")
+            }
+        except Exception as e:
+            raise Exception(f"获取源 DNS 记录失败: {str(e)}")
+
+    def _query_dns(self, record_type: str) -> List[str]:
+        """查询 DNS 记录"""
+        url = "https://cloudflare-dns.com/dns-query"
+        params = {
+            "name": self.source_hostname,
+            "type": record_type
+        }
+        headers = {"Accept": "application/dns-json"}
+        
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        type_code = 1 if record_type == "A" else 28
+        return [answer["data"] for answer in data.get("Answer", []) 
+                if answer["type"] == type_code]
+
+    def _sync_records(self, record_type: str, desired_ips: List[str]):
+        """同步特定类型的记录"""
+        existing_records = self._get_existing_records(record_type)
+        current_ips = {r["content"] for r in existing_records}
+        
+        # 删除不需要的记录
+        for record in existing_records:
+            if record["content"] not in desired_ips:
+                print(f"删除 {record_type} 记录: {record['name']} -> {record['content']}")
+                self._delete_record(record["id"])
+        
+        # 添加新记录
+        for ip in desired_ips:
+            if ip not in current_ips:
+                print(f"添加 {record_type} 记录: {self.target_domain} -> {ip}")
+                self._create_record(record_type, ip)
+
+    def _get_existing_records(self, record_type: str) -> List[Dict]:
+        """获取现有记录"""
+        response = requests.get(
+            f"{self.base_url}/zones/{self.zone_id}/dns_records",
+            headers=self.headers,
+            params={
+                "name": self.target_domain,
+                "type": record_type
+            }
+        )
+        response.raise_for_status()
+        return response.json()["result"]
+
+    def _delete_record(self, record_id: str):
+        """删除记录"""
+        response = requests.delete(
+            f"{self.base_url}/zones/{self.zone_id}/dns_records/{record_id}",
+            headers=self.headers
+        )
+        response.raise_for_status()
+
+    def _create_record(self, record_type: str, ip: str):
+        """创建记录"""
+        data = {
+            "type": record_type,
+            "name": self.target_domain,
+            "content": ip,
+            "ttl": 1,  # 自动 TTL
+            "proxied": False  # 不通过 Cloudflare 代理
+        }
+        response = requests.post(
+            f"{self.base_url}/zones/{self.zone_id}/dns_records",
+            headers=self.headers,
+            json=data
+        )
+        response.raise_for_status()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        sync = CloudflareDNSSync()
+        sync.run()
+        sys.exit(0)
+    except Exception as e:
+        print(f"错误: {str(e)}", file=sys.stderr)
+        sys.exit(1)
