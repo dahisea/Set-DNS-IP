@@ -3,6 +3,8 @@ name: Update
 on:
   watch:
     types: [started]
+  schedule:
+    - cron: '0 3 * * *'
    
 jobs:
   build:
@@ -21,9 +23,14 @@ jobs:
       run: |
         pip install requests
 
+    - name: Sync DNS records
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}  # 可选
+        TARGET_DOMAIN: ${{ vars.TARGET_DOMAIN }}
+        SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'a.netlify.app' }}
+
+
     - name: Read
       run: |
-        cp ${{ github.workspace }}/run.py ${{ github.workspace }}/updater.py
-        echo "${{ secrets.KEY }}" > api.txt
-        sed -i '6 r api.txt' ${{ github.workspace }}/updater.py
-        python ${{ github.workspace }}/updater.py
+        python ${{ github.workspace }}/run.py
