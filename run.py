@@ -2,6 +2,9 @@ import requests
 import json
 from typing import List, Dict, Optional
 
+
+
+
 class CloudflareDNSManager:
     def __init__(self, api_token: str, zone_id: str):
         """
@@ -179,14 +182,10 @@ class CloudflareDNSManager:
 
 
 def main():
-
-
-
-
-CLOUDFLARE_ZONE_ID = "edb2169f523e048578511bc5c4161807"
+    CLOUDFLARE_ZONE_ID = "edb2169f523e048578511bc5c4161807"
 TARGET_DOMAIN = "nf-cdn.dahi.edu.eu.org" 
 
-dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
+    dns_manager = CloudflareDNSManager(CLOUDFLARE_API_TOKEN, CLOUDFLARE_ZONE_ID)
     
     # 执行同步
     dns_manager.sync_dns_records(TARGET_DOMAIN)
