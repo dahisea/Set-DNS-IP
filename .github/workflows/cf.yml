@@ -1,0 +1,33 @@
+name: Update
+
+on:
+  watch:
+    types: [started]
+  schedule:
+    - cron: '45 * * * *'
+   
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps: 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install requests
+
+    - name: Run DNS sync script
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}  # optional
+        TARGET_DOMAIN: ${{ vars.TARGET_DOMAIN }}
+        SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'auv.cloudflare.182682.xyz }}
+      run: |
+        python ${{ github.workspace }}/runcf.py
