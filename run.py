@@ -7,7 +7,7 @@ from ipaddress import ip_network
 class HybridDNSSync:
     def __init__(
         self,
-        edns_client_subnet: str = "101.203.89.0/24",
+        edns_client_subnet: str = "116.67.78.0/24",
         force_disable_edns: bool = False
     ):
         """初始化混合DNS同步工具
