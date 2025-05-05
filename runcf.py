@@ -181,16 +181,8 @@ class HybridDNSSync:
 
 if __name__ == "__main__":
     try:
-        # 使用示例（三种模式）：
-        # 1. 默认EDNS（推荐）
-        # sync = HybridDNSSync()  
-        
-        # 2. 针对特定地理位置的EDNS
-        sync = HybridDNSSync(edns_client_subnet="203.0.113.1")  # 替换为实际IP
-        
-        # 3. 完全禁用EDNS（调试用）
-        # sync = HybridDNSSync(force_disable_edns=True)
-        
+        sync = HybridDNSSync()  
+
         sync.run()
         sys.exit(0)
     except Exception as e:
