@@ -27,7 +27,7 @@ jobs:
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}  # optional
-        CF_TARGET_DOMAIN: ${{ vars.CF_TARGET_DOMAIN }}
+        TARGET_DOMAIN: ${{ vars.CF_TARGET_DOMAIN }}
         SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'auv.cloudflare.182682.xyz' }}
       run: |
         python ${{ github.workspace }}/runcf.py
