@@ -1,4 +1,4 @@
-name: UpdateCF
+name: Update CF
 
 on:
   watch:
