@@ -42,7 +42,7 @@ class HybridDNSSync:
         self.target_domain = self._get_env_var("TARGET_DOMAIN")
         
         # DNS配置
-        self.source_hostname = self._get_env_var("SOURCE_HOSTNAME", default="a.netlify.app")
+        self.source_hostname = self._get_env_var("SOURCE_HOSTNAME", default="4yvjzrwg.litecdncname.com")
         self.google_dns_url = "https://dns.google/resolve"
 
         # 测试配置
