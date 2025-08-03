@@ -53,7 +53,7 @@ class HybridDNSSync:
         self.host_header = host_header
         self.user_agent = user_agent
         self.timeout = 5
-        self.max_workers = 20
+        self.max_workers = 5
         self.debug = os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
 
         # EDNS配置
