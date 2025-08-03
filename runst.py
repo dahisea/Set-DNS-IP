@@ -18,7 +18,7 @@ class HybridDNSSync:
         edns_client_subnet: str = "104.28.244.152",
         force_disable_edns: bool = False,
         test_path: str = "/",
-        top_n: int = 6,
+        top_n: int = 10,
         accepted_status_codes: Set[int] = {404,200},
         https_port: int = 443,
         host_header: str = "update.greasyfork.org.cn",
