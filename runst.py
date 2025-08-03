@@ -19,7 +19,7 @@ class HybridDNSSync:
         force_disable_edns: bool = False,
         test_path: str = "/",
         top_n: int = 6,
-        accepted_status_codes: Set[int] = {200, 404},
+        accepted_status_codes: Set[int] = {404,200},
         https_port: int = 443,
         host_header: str = "update.greasyfork.org.cn",
         user_agent: str = "Mozilla/5.0 (Linux; Android 16; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36"
