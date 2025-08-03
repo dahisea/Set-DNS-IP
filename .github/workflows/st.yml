@@ -30,4 +30,4 @@ jobs:
         TARGET_DOMAIN: ${{ vars.ST_TARGET_DOMAIN }}
         SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || '4yvjzrwg.litecdncname.com' }}
       run: |
-        python ${{ github.workspace }}/run.py
+        python ${{ github.workspace }}/runst.py
