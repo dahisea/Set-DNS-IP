@@ -71,7 +71,7 @@ class HybridDNSSync:
 
         # 从Google DNS获取源记录
         source_records = self._get_google_dns_records()
-        print(f"从Google DNS获取的记录: A={source_records['A']})
+        print(f"从Google DNS获取的记录: A={source_records['A']}, AAAA={source_records['AAAA']}")
 
         # 同步到Cloudflare
         for record_type in ["A"]:
@@ -100,7 +100,8 @@ class HybridDNSSync:
         """从Google DNS查询记录（支持EDNS）"""
         try:
             return {
-                "A": self._query_google_dns("A")
+                "A": self._query_google_dns("A"),
+                "AAAA": self._query_google_dns("AAAA")
             }
         except Exception as e:
             raise RuntimeError(f"Google DNS查询失败: {str(e)}")
