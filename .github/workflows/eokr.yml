@@ -30,4 +30,4 @@ jobs:
         TARGET_DOMAIN: ${{ vars.EOPF_TARGET_DOMAIN }}
         SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'edgeone.ai' }}
       run: |
-        python ${{ github.workspace }}/runeopf.py
+        python ${{ github.workspace }}/runeokr.py
