@@ -27,7 +27,7 @@ jobs:
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}  # optional
-        TARGET_DOMAIN: ${{ vars.EOPF_TARGET_DOMAIN }}
+        TARGET_DOMAIN: ${{ vars.EOKR_TARGET_DOMAIN }}
         SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'edgeone.ai' }}
       run: |
         python ${{ github.workspace }}/runeokr.py
