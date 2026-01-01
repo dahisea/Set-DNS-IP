@@ -30,4 +30,4 @@ jobs:
         TARGET_DOMAIN: ${{ vars.EOCDNCNSH_TARGET_DOMAIN }}
         SOURCE_HOSTNAME: ${{ vars.SOURCE_HOSTNAME || 'gfork-origin.dahi.e.yu.ac.cn.pages.dnsoe4.com' }}
       run: |
-        python ${{ github.workspace }}/runcf.py
+        python ${{ github.workspace }}/runeocdncnsh.py
